@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eng Club Admin — Users (prototype)</title>
+<style>
+:root{
+  --bg:#f4f6fa; --panel:#fff; --line:#e1e5ee; --line2:#eef1f6; --text:#1d2433; --muted:#6b7385; --accent:#2f5bd3; --accent-bg:#eaf0ff;
+  --green:#1e8a4c; --green-bg:#e5f5ec; --blue:#2463c9; --blue-bg:#e6efff; --orange:#b5610d; --orange-bg:#fdf0e1;
+  --red:#c62828; --red-bg:#fde8e8; --yellow:#8a6a00; --yellow-bg:#fff5cc; --gray:#5b6475; --gray-bg:#eef0f4;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font:13px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:var(--bg)}
+a{color:var(--accent);text-decoration:none;cursor:pointer}
+button{font:inherit;cursor:pointer}
+.app{display:flex;min-height:100vh}
+/* sidebar */
+.side{width:210px;flex:none;background:#1f2a44;color:#c9d2e6;padding:16px 0}
+.logo{font-weight:700;color:#fff;font-size:16px;padding:0 20px 16px}
+.logo small{display:block;font-weight:400;color:#8f9bb8;font-size:11px}
+.nav a{display:flex;justify-content:space-between;align-items:center;color:#c9d2e6;padding:9px 20px}
+.nav a.on{background:#2e3b5c;color:#fff;border-left:3px solid #6c9bff;padding-left:17px}
+.nav .sub a{padding:6px 20px 6px 34px;font-size:12px;color:#9eabc7}
+.nav .sub a.on{color:#fff;background:none;border:0;padding-left:34px;font-weight:600}
+.nb{background:#e5484d;color:#fff;border-radius:10px;font-size:11px;padding:0 7px;line-height:18px}
+/* main */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{height:52px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.crumbs{color:var(--muted)} .crumbs b{color:var(--text)}
+.who{display:flex;gap:14px;align-items:center;color:var(--muted)}
+.screens{position:relative}
+.screens>button{border:1px dashed #9aa6c2;background:#f7f9ff;border-radius:6px;padding:4px 10px;color:#3a4766}
+.screens .menu{display:none;position:absolute;right:0;top:32px;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(20,30,60,.15);z-index:50;width:250px;padding:6px}
+.screens.open .menu{display:block}
+.screens .menu a{display:block;padding:6px 10px;border-radius:5px;color:var(--text)}
+.screens .menu a:hover{background:var(--accent-bg)}
+.content{padding:20px 24px;flex:1}
+h1{font-size:20px;margin:0 0 14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.pad{padding:14px 16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sp{flex:1}
+.btn{border:1px solid #cdd3e0;background:#fff;border-radius:7px;padding:6px 12px;color:var(--text)}
+.btn:hover{border-color:#9fb0d8}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.ok{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.btn.danger{border-color:#e8a3a3;color:var(--red)}
+.btn.dangerf{background:var(--red);border-color:var(--red);color:#fff;font-weight:600}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:3px 9px;font-size:12px}
+.btn.on{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+input[type=text],input[type=number],input[type=date],select,textarea{font:inherit;border:1px solid #cdd3e0;border-radius:6px;padding:5px 8px;background:#fff;color:var(--text)}
+textarea{width:100%;resize:vertical}
+.search{width:300px}
+/* badges */
+.b{display:inline-flex;align-items:center;gap:4px;border-radius:12px;padding:1px 9px;font-size:12px;white-space:nowrap;border:1px solid transparent}
+.b.green{background:var(--green-bg);color:var(--green)} .b.blue{background:var(--blue-bg);color:var(--blue)}
+.b.orange{background:var(--orange-bg);color:var(--orange)} .b.red{background:var(--red-bg);color:var(--red)}
+.b.yellow{background:var(--yellow-bg);color:var(--yellow)} .b.gray{background:var(--gray-bg);color:var(--gray)}
+.b.out{background:#fff;border-color:#cdd3e0;color:var(--gray)}
+.en{display:inline-block;vertical-align:middle;line-height:14px;align-self:center;font-size:10px;font-weight:700;color:#fff;background:#4a5a85;border-radius:3px;padding:0 4px;margin-left:4px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.muted{color:var(--muted)} .small{font-size:12px} .xs{font-size:11px}
+.flag{font-size:16px;line-height:1}
+/* quick tabs */
+.qtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:12px;flex-wrap:wrap}
+.qtabs a{padding:8px 12px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.qtabs a.on{color:var(--accent);border-color:var(--accent);font-weight:600}
+.qtabs .c{background:var(--gray-bg);color:var(--gray);border-radius:9px;padding:0 6px;font-size:11px;margin-left:4px}
+.qtabs a.on .c{background:var(--accent-bg);color:var(--accent)}
+.qtabs .c.alert{background:#e5484d;color:#fff}
+/* table */
+table{border-collapse:collapse;width:100%}
+th{font-weight:600;color:var(--muted);font-size:12px;text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);background:#fafbfd;vertical-align:bottom}
+th.sort{cursor:pointer;color:#3a4766} th.sort:after{content:" ⇅";color:#a4adc0} th.sorted:after{content:" ↓";color:var(--accent)}
+td{padding:8px 8px;border-bottom:1px solid var(--line2);vertical-align:middle}
+tbody tr.click{cursor:pointer} tbody tr.click:hover{background:#f6f8fe}
+.ava{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:#fff;flex:none;font-size:12px}
+.uc{display:flex;gap:9px;align-items:center}
+.uc b{display:block} .uc>div>span{color:var(--muted);font-size:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.chip{background:var(--accent-bg);color:var(--accent);border-radius:12px;padding:2px 6px 2px 10px;font-size:12px}
+.chip i{font-style:normal;margin-left:6px;cursor:pointer;opacity:.7}
+.pager{display:flex;align-items:center;gap:6px;justify-content:flex-end;padding:10px 14px}
+.pager .pg{min-width:28px;text-align:center;border:1px solid var(--line);border-radius:6px;padding:3px 6px;background:#fff}
+.pager .pg.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.seg{display:inline-flex;border:1px solid #cdd3e0;border-radius:7px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:5px 11px;color:var(--muted)}
+.seg button.on{background:var(--accent-bg);color:var(--accent);font-weight:600}
+.dots{border:0;background:none;font-size:16px;color:var(--muted);padding:0 6px}
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:14px}
+.tile{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center;cursor:pointer}
+.tile .ava{width:56px;height:56px;font-size:18px}
+.ticons{display:flex;gap:6px;margin-top:8px}
+.ticons a{border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:11px;color:#3a4766}
+/* drawer */
+.overlay{position:fixed;inset:0;background:rgba(18,26,48,.38);z-index:30;display:none}
+.overlay.on{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:820px;background:#fff;z-index:31;display:none;flex-direction:column;box-shadow:-10px 0 30px rgba(20,30,60,.18)}
+.drawer.on{display:flex}
+.dh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center}
+.dh h2{margin:0;font-size:17px}
+.dtabs{display:flex;gap:4px;padding:0 20px;border-bottom:1px solid var(--line)}
+.dtabs a{padding:10px 14px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.dtabs a.on{color:var(--accent);border-color:var(--accent);font-weight:600}
+.dbody{flex:1;overflow:auto;padding:14px 20px}
+.df{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;background:#fafbfd}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 22px}
+.f label.l{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+.f .ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.f input[type=text]{width:100%}
+.f input.n{width:70px}
+.f input.dt,input.dt{width:110px}
+.tri{display:inline-flex;border:1px solid #cdd3e0;border-radius:6px;overflow:hidden}
+.tri span{padding:2px 9px;font-size:12px;color:var(--muted);border-left:1px solid #e3e7ef}
+.tri span:first-child{border-left:0}
+.tri span.on{background:var(--accent-bg);color:var(--accent);font-weight:600}
+.ck{display:inline-flex;gap:4px;align-items:center;font-size:12px;margin-right:10px}
+.v2{opacity:.5}
+.v2tag{font-size:10px;background:var(--gray-bg);color:var(--gray);border-radius:4px;padding:0 5px;margin-left:4px}
+.sec{font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#7a8396;margin:14px 0 8px;grid-column:1/-1}
+/* card */
+.back{display:inline-block;margin-bottom:10px}
+.head{display:flex;gap:16px;padding:16px 18px;align-items:flex-start}
+.head .ava{width:68px;height:68px;font-size:24px;position:relative}
+.head .ava .fl{position:absolute;right:-4px;bottom:-2px;font-size:20px}
+.head h2{margin:0;font-size:20px;display:inline}
+.idc{color:var(--muted);margin-left:6px}
+.hb{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 6px}
+.meta{color:var(--muted);font-size:12px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px;margin-top:14px;align-items:start}
+.ctabs{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:0 12px}
+.ctabs a{padding:11px 14px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.ctabs a.on{color:var(--text);font-weight:600;border-color:var(--accent)}
+.ctabs a .pdot{display:inline-block;width:7px;height:7px;background:#e5484d;border-radius:50%;margin-left:5px;vertical-align:middle}
+.actions{padding:14px}
+.actions h3{margin:0 0 10px;font-size:14px}
+.actions .btn{display:block;width:100%;text-align:left;margin-bottom:7px}
+.actions .note{font-size:11px;color:var(--muted);margin-top:6px}
+.kv{display:grid;grid-template-columns:200px 1fr;border-bottom:1px solid var(--line2);padding:7px 0}
+.kv>div:first-child{color:var(--muted)}
+.box .kv{grid-template-columns:1fr auto;gap:10px}
+.box .kv>div:last-child{text-align:right}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:0 32px}
+.cols3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.box{border:1px solid var(--line);border-radius:9px;padding:12px 14px}
+.box h4{margin:0 0 8px;font-size:14px;color:#24345e}
+.box p{margin:3px 0}
+.player{display:flex;align-items:center;gap:8px;margin:4px 0 8px}
+.player .pb{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;border:0;font-size:12px}
+.track{flex:1;height:6px;background:#e3e7ef;border-radius:3px;position:relative}
+.track i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);border-radius:3px;transition:width .2s}
+.miss{background:var(--red-bg);color:var(--red);border-radius:3px;padding:0 3px;font-weight:600}
+.map{height:110px;border-radius:7px;background:repeating-linear-gradient(45deg,#eef1f6 0 10px,#e6eaf2 10px 20px);position:relative;margin-bottom:8px;border:1px solid var(--line)}
+.map .pin{position:absolute;left:52%;top:38%;width:16px;height:16px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#e5484d}
+.map .acc{position:absolute;left:calc(52% - 22px);top:calc(38% - 14px);width:60px;height:60px;border-radius:50%;border:2px solid rgba(229,72,77,.35);background:rgba(229,72,77,.08)}
+.map .lbl{position:absolute;right:8px;bottom:6px;font-size:10px;color:var(--muted)}
+.decide{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0}
+.hint{background:#f7f9fd;border:1px dashed #c9d3e6;border-radius:8px;padding:10px 12px;font-size:12px;color:#4b5670}
+.hint table td,.hint table th{padding:4px 8px;font-size:12px;background:none}
+.mini td,.mini th{padding:6px 8px;font-size:12px}
+.ok{color:var(--green)} .no{color:var(--red)}
+.timer{background:var(--red-bg);color:var(--red);border-radius:6px;padding:2px 8px;font-weight:600}
+/* modal */
+.modal{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;z-index:40;padding:40px 0;overflow:auto;background:rgba(18,26,48,.38)}
+.modal.on{display:flex}
+.dlg{background:#fff;border-radius:12px;width:600px;box-shadow:0 20px 50px rgba(15,25,50,.3)}
+.dlg .dh{padding:14px 18px}
+.dlg .dh h2{font-size:16px}
+.dlg .what{padding:10px 18px;background:#f7f9fd;border-bottom:1px solid var(--line);font-size:12px;color:#4b5670}
+.dlg .db{padding:14px 18px}
+.dlg .dfoot{padding:12px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;background:#fafbfd;border-radius:0 0 12px 12px}
+.fld{margin-bottom:12px}
+.fld>label{display:block;font-weight:600;font-size:12px;margin-bottom:4px}
+.fld .help{font-size:11px;color:var(--muted);margin-top:3px}
+.fld .seen{font-size:11px;color:var(--orange);margin-top:3px}
+.radio{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:pointer}
+.radio.on{border-color:var(--accent);background:#f5f8ff}
+.grp{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px 16px;margin:4px 0 8px 4px}
+.sum{background:var(--orange-bg);color:#7a4a10;border-radius:7px;padding:8px 10px;font-size:12px}
+.warnbox{background:var(--yellow-bg);color:#6a5200;border-radius:7px;padding:8px 10px;font-size:12px;margin:6px 0 10px}
+.preview{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fbfcfe;font-size:12px}
+.preview b{display:block;margin-bottom:2px}
+.x{border:0;background:none;font-size:20px;color:var(--muted);margin-left:auto;line-height:1}
+.gallery{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.gallery .dlg{width:auto;box-shadow:0 2px 8px rgba(15,25,50,.08);border:1px solid var(--line)}
+.gtag{display:inline-block;background:#24345e;color:#fff;border-radius:5px;padding:1px 7px;font-size:11px;margin-right:8px}
+.hide{display:none!important}
+body.shot .screens{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo">Eng Club<small>Admin panel</small></div>
+    <nav class="nav">
+      <a class="on" href="#s1">Users <span class="nb" title="Nationality awaiting admin + unread support">40</span></a>
+      <div class="sub">
+        <a id="nav-all" href="#s1">All users</a>
+        <a id="nav-queue" href="#s3">Nationality queue</a>
+        <a href="#s1&amp;tab=avatar">Avatar moderation</a>
+        <a href="#s7">Support chat</a>
+      </div>
+      <a>Clubs</a><a>Lessons</a><a>Courses</a><a>Moments</a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="top">
+      <div class="crumbs" id="crumbs">Admin panel › <b>Users</b></div>
+      <div class="who">
+        <div class="screens" id="screens"><button onclick="this.parentNode.classList.toggle('open')">Screens 1–8 ▾</button>
+          <div class="menu">
+            <a href="#s1">1. Users list</a><a href="#s2">2. Filters panel</a><a href="#s3">3. Nationality review queue</a>
+            <a href="#s4">4. User card → Profile</a><a href="#s5">5. User card → Nationality</a><a href="#s6">6. User card → Statistics</a>
+            <a href="#s7">7. User card → Info &amp; log</a><a href="#s8">8. Action dialogs</a>
+          </div></div>
+        <span>admin@engclub.app · <b>admin</b></span>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+<div class="overlay" id="ov" onclick="go('#s1')"></div>
+<div class="drawer" id="drawer"></div>
+<div class="modal" id="modal" onclick="if(event.target===this)closeDlg()"></div>
+
+<script>
+/* ---------- fake data (no real people) ---------- */
+const U=[
+ {id:'u_8f2c1a',nick:'QWE',email:'qwe-123@gmail.com',col:'#6c7fd8',fl:'🇺🇸',nat:'American',ns:'TEST_PASSED',en:true,lang:'English',trust:'MEDIUM',score:52,acc:'RESTR',accTxt:'Restrictions (1) until 20.10',prem:null,reg:'11.05.2026',last:'today 14:20',warn:1,avatar:'PENDING',dob:'11.05.1995 (31)',gender:'Male',native:'Russian',second:'—',town:'not specified',about:'Learning English for travel and work.',social:'instagram: qwe',plat:'Android / RuStore',ver:'1.8.2',regc:'RU',rej:0,chat:1},
+ {id:'u_31d9e0',nick:'maria_k',email:'maria.k@example.com',col:'#d0789a',fl:'🇪🇸',nat:'Spanish',ns:'ADMIN_CONFIRMED',en:false,lang:'Spanish',trust:'HIGH',score:82,acc:'ACTIVE',accTxt:'Active',prem:true,reg:'02.02.2026',last:'yesterday 21:05',warn:0,avatar:'APPROVED',dob:'03.09.1998 (28)',gender:'Female',native:'Spanish',second:'Catalan',town:'Valencia',about:'Teacher, love talking clubs.',social:'linkedIn: maria-k',plat:'iOS / App Store',ver:'1.8.2',regc:'ES',rej:0,chat:0},
+ {id:'u_a07b44',nick:'tomasz88',email:'tomasz88@example.com',col:'#4aa37a',fl:'🇵🇱',nat:'Polish',ns:'REJECTION_PENDING',en:false,lang:'Polish',trust:'LOW',score:34,acc:'ACTIVE',accTxt:'Active',prem:false,reg:'28.08.2026',last:'today 09:12',warn:2,avatar:'APPROVED',dob:'14.02.1988 (38)',gender:'Male',native:'Polish',second:'German',town:'not specified',about:'not specified',social:'not specified',plat:'Android / Google Play',ver:'1.8.1',regc:'DE',rej:0,chat:2},
+ {id:'u_5c2e19',nick:'aiko_t',email:'aiko.t@example.com',col:'#e0a03a',fl:'🇯🇵',nat:'Japanese',ns:'NOT_CONFIRMED',en:false,lang:'—',trust:'NEW',score:20,acc:'ACTIVE',accTxt:'Active',prem:false,reg:'09.10.2026',last:'today 11:40',warn:0,avatar:'NONE',dob:'21.07.2001 (25)',gender:'Female',native:'Japanese',second:'—',town:'Osaka',about:'not specified',social:'not specified',plat:'iOS / App Store',ver:'1.8.2',regc:'JP',rej:0,chat:0},
+ {id:'u_9e6f02',nick:'liam_o',email:'liam.o@example.com',col:'#8a6fd0',fl:'🇬🇧',nat:'British',ns:'REJECTED',en:true,lang:'English',trust:'LOW',score:22,acc:'REJ',accTxt:'Closed: nationality rejected',prem:false,reg:'17.06.2026',last:'12 days ago',warn:1,avatar:'APPROVED',dob:'02.12.1993 (32)',gender:'Male',native:'English',second:'—',town:'not specified',about:'not specified',social:'not specified',plat:'Web',ver:'—',regc:'TR',rej:1,chat:1},
+ {id:'u_c4b7d8',nick:'nightowl_x',email:'owl.x@example.com',col:'#5a6b80',fl:'🇧🇷',nat:'Brazilian',ns:'ADMIN_CONFIRMED',en:false,lang:'Portuguese',trust:'LOW',score:28,acc:'BLOCK',accTxt:'Blocked until 25.10',prem:false,reg:'03.03.2026',last:'45 days ago',warn:3,avatar:'APPROVED',dob:'09.04.1996 (30)',gender:'Male',native:'Portuguese',second:'Spanish',town:'Recife',about:'not specified',social:'not specified',plat:'Android / Google Play',ver:'1.7.9',regc:'BR',rej:0,chat:0}
+];
+const NS={NOT_SELECTED:['gray','Not selected'],NOT_CONFIRMED:['orange','Not confirmed'],TEST_PASSED:['blue','Confirmed by user'],REJECTION_PENDING:['red','Rejection pending — until 15.10'],REJECTED:['red','Rejected'],ADMIN_CONFIRMED:['green','Confirmed by admin']};
+const TR={NEW:['gray','New'],LOW:['red','Low'],MEDIUM:['yellow','Medium'],HIGH:['green','High']};
+const ACC={ACTIVE:'green',RESTR:'yellow',BLOCK:'red',REJ:'red'};
+let cur=U[0], view='rows', ftab='profile', sortBy='registeredAt';
+const $=s=>document.querySelector(s);
+const ava=(u,cls='')=>`<span class="ava ${cls}" style="background:${u.col}">${u.nick.slice(0,2).toUpperCase()}</span>`;
+const nsB=u=>`<span class="b ${NS[u.ns][0]}">${u.fl} ${u.nat} — ${NS[u.ns][1]}</span>${u.en?'<span class="en" title="English-language application">EN</span>':''}`;
+const trB=u=>`<span class="b ${TR[u.trust][0]}">${TR[u.trust][1]}</span>`;
+const accB=u=>`<span class="b ${ACC[u.acc]}">${u.accTxt}</span>`;
+
+/* ---------- router ---------- */
+function go(h){location.hash=h}
+function params(){const p={};location.hash.slice(1).split('&').forEach((kv,i)=>{if(i===0)p.s=kv;else{const [k,v]=kv.split('=');p[k]=v===undefined?true:decodeURIComponent(v)}});return p}
+function render(){
+  const p=params(); const s=p.s||'s1';
+  document.body.classList.toggle('shot',!!p.shot);
+  $('#screens').classList.remove('open');
+  if(p.user){cur=U.find(u=>u.id===p.user)||cur}
+  if(p.ftab)ftab=p.ftab;
+  $('#drawer').classList.remove('on');$('#ov').classList.remove('on');closeDlg(true);
+  document.querySelectorAll('.nav .sub a').forEach(a=>a.classList.remove('on'));
+  const C=$('#content');
+  if(s==='s1'||s==='s2'){ $('#nav-all').classList.add('on'); C.innerHTML=listScreen(p); $('#crumbs').innerHTML='Admin panel › <b>Users</b>';
+     if(s==='s2'){openFilters()} }
+  else if(s==='s3'){ $('#nav-queue').classList.add('on'); C.innerHTML=queueScreen(); $('#crumbs').innerHTML='Admin panel › Users › <b>Nationality review queue</b>'}
+  else if(['s4','s5','s6','s7'].includes(s)){ C.innerHTML=cardScreen(s); $('#crumbs').innerHTML=`Admin panel › <a href="#s1">Users</a> › <b>${cur.nick}</b>`}
+  else if(s==='s8'){ C.innerHTML=galleryScreen(); $('#crumbs').innerHTML='Admin panel › Users › <b>Action dialogs (overview)</b>'}
+  if(p.dlg)openDlg(p.dlg);
+  window.scrollTo(0,0);
+  document.documentElement.setAttribute('data-h',document.documentElement.scrollHeight);
+}
+window.addEventListener('hashchange',render);
+
+/* ---------- 1. list ---------- */
+function listScreen(p){
+  const tabs=[['All',15420],['Nationality: awaiting admin',37,1],['Rejections',4],['Blocked',12],['Restricted',25],['Avatar moderation',9]];
+  const qt=tabs.map((t,i)=>`<a class="${i===0?'on':''}">${t[0]}<span class="c ${t[2]?'alert':''}">${t[1].toLocaleString('en')}</span></a>`).join('');
+  const sortCols={registeredAt:'Registered',lastActiveAt:'Last active',trustScore:'Trust',warningsCount:'Warnings'};
+  const th=(k,l)=>`<th class="sort ${sortBy===k?'sorted':''}" onclick="sortBy='${k}';render()">${l}</th>`;
+  const rows=U.map(u=>`<tr class="click" onclick="openCard('${u.id}')">
+    <td><div class="uc">${ava(u)}<div><b>${u.nick}</b><span>${u.email}</span></div></div></td>
+    <td><div>${u.fl} ${u.nat}${u.en?'<span class="en" title="English-language application">EN</span>':''}</div><span class="b ${NS[u.ns][0]}">${NS[u.ns][1]}</span></td><td>${u.lang}</td><td>${trB(u)}</td><td>${accB(u)}</td>
+    <td>${u.prem===null?'<span class="muted">—</span>':u.prem?'<span class="b blue">Premium</span>':'<span class="muted">No</span>'}</td>
+    <td>${u.reg}</td><td style="white-space:nowrap">${u.last}</td><td style="text-align:center">${u.warn?'<b>'+u.warn+'</b>':'<span class="muted">0</span>'}</td>
+    <td onclick="event.stopPropagation()"><button class="dots" title="Open in new tab · Warn · Restrict · Block / Unblock" onclick="cur=U.find(x=>x.id==='${u.id}');openDlg('restrict')">⋯</button></td></tr>`).join('');
+  const tiles=U.map(u=>`<div class="tile" onclick="openCard('${u.id}')">${ava(u)}<div style="min-width:0;flex:1">
+     <div class="row" style="gap:6px"><b>${u.nick}</b><span class="flag">${u.fl}</span><span class="dot" style="background:var(--${ACC[u.acc]})" title="${u.accTxt}"></span></div>
+     <div class="muted small">${u.email}</div>
+     <div class="ticons" onclick="event.stopPropagation()"><a onclick="openCard('${u.id}','s4')">Profile</a><a onclick="openCard('${u.id}','s6')">Statistics</a><a onclick="openCard('${u.id}','s7')">Info</a><a onclick="cur=U.find(x=>x.id==='${u.id}');openDlg('restrict')">Actions</a></div></div></div>`).join('');
+  return `<h1>Users</h1>
+  <div class="row" style="margin-bottom:12px">
+    <input type="text" class="search" placeholder="Search by nickname, email or ID">
+    <button class="btn" onclick="go('#s2')">⚲ Filters (2)</button>
+    <select title="Sort by"><option>Sort: Registration date</option><option>Last active</option><option>Nationality submitted</option><option>Trust score</option><option>Warnings count</option></select>
+    <div class="seg"><button class="on">↓ Desc</button><button>↑ Asc</button></div>
+    <select><option>Presets ▾</option><option>EN applications this week</option><option>Restricted, low trust</option></select>
+    <span class="sp"></span>
+    <div class="seg"><button class="${view==='rows'?'on':''}" onclick="view='rows';render()">☰ Table</button><button class="${view==='tiles'?'on':''}" onclick="view='tiles';render()">▦ Tiles</button></div>
+  </div>
+  <div class="qtabs">${qt}</div>
+  <div class="chips"><span class="chip">Nationality status: Confirmed by user, Rejection pending<i>✕</i></span><span class="chip">Registered: 01.05.2026 – 13.10.2026<i>✕</i></span><a class="small">Reset all</a><span class="sp"></span><span class="muted">Found: <b style="color:var(--text)">1,234</b></span></div>
+  <div class="card">
+   ${view==='rows'?`<table><thead><tr><th>User</th><th>Nationality · verification status</th><th>Confirmed language</th>${th('trustScore','Trust level')}<th>Account status</th><th>Premium</th>${th('registeredAt','Registered')}${th('lastActiveAt','Last active')}${th('warningsCount','Warnings')}<th></th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="tiles">${tiles}</div>`}
+   <div class="pager"><span class="muted small" style="margin-right:auto;padding-left:2px">Click a row → user card · “Warnings” stands in for “Complaints” until v2 · Premium only if purchase data exists</span>
+    Rows per page <select><option>20</option><option>50</option><option>100</option></select>
+    <span class="pg">‹</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span><span class="muted">…</span><span class="pg">62</span><span class="pg">›</span></div>
+  </div>`;
+}
+function openCard(id,s){cur=U.find(u=>u.id===id);const def=(cur.ns==='TEST_PASSED'||cur.ns==='REJECTION_PENDING')?'s5':'s4';go('#'+(s||def)+'&user='+id)}
+
+/* ---------- 2. filters ---------- */
+const tri=(on=2)=>`<span class="tri">${['Yes','No','All'].map((t,i)=>`<span class="${i===on?'on':''}">${t}</span>`).join('')}</span>`;
+const rng=(a='',b='')=>`<input class="n" type="number" placeholder="from" value="${a}"> – <input class="n" type="number" placeholder="to" value="${b}">`;
+const dr=()=>`<input type="text" class="dt" placeholder="dd.mm.yyyy"> – <input type="text" class="dt" placeholder="dd.mm.yyyy">`;
+const F=(l,c,cls='')=>`<div class="f ${cls}"><label class="l">${l}${cls==='v2'?'<span class="v2tag">coming later (v2)</span>':''}</label><div class="ctl">${c}</div></div>`;
+const cks=(arr,on=[])=>arr.map(a=>`<label class="ck"><input type="checkbox" ${on.includes(a)?'checked':''}>${a}</label>`).join('');
+function filtersBody(){
+ if(ftab==='profile')return `<div class="fgrid">
+  ${F('Email','<input type="text" placeholder="part of email">')}${F('Nickname','<input type="text" placeholder="part of nickname">')}
+  ${F('Age',rng('18','45'))}${F('Gender',cks(['Male','Female']))}
+  <div class="sec">Nationality</div>
+  ${F('Macroregions / nationalities','<select style="width:100%"><option>Select… (Europe, North America, …)</option></select>')}${F('Has first nationality',tri())}
+  <div class="f" style="grid-column:1/-1"><label class="l">Nationality status</label><div class="ctl">${cks(['Not selected','Not confirmed','Confirmed by user','Rejection pending','Rejected','Confirmed by admin'],['Confirmed by user','Rejection pending'])}</div></div>
+  ${F('Confirmed (date)',dr())}${F('English-language application',tri())}
+  ${F('Voice sample level',cks(['Green','Yellow']))}${F('Geolocation country (by coordinates)','<select style="width:100%"><option>Any country</option></select>')}
+  ${F('Confirmed language','<select style="width:100%"><option>Any</option></select>')}${F('Second language','<select style="width:100%"><option>Any</option></select>')}
+  <div class="sec">Profile</div>
+  ${F('Has avatar',tri())}${F('Avatar status',cks(['Pending','Approved','Rejected']))}
+  ${F('Trust level',cks(['New','Low','Medium','High']))}${F('Premium (only if purchase data exists)',tri()+' <span class="muted small">bought</span> '+dr())}
+  ${F('Personal questions',tri())}${F('No flirting',tri())}
+  ${F('Has social link',tri())}${F('Has "About me"',tri())}</div>`;
+ if(ftab==='stats')return `<div class="row" style="margin-bottom:10px"><span class="muted">Period</span><div class="seg"><button class="on">All time</button><button>30 days</button></div><span class="muted small">Ranges: empty = any, 0 = none</span></div>
+  <div class="fgrid">
+  <div class="sec">Moments &amp; comments</div>
+  ${F('Moments (posts)',rng())}${F('Moments reviewed by teacher',rng())}
+  ${F('Comments in moments',rng())}${F('"Topic of the week" comments',rng())}
+  ${F('Deleted by moderator (all time only)',rng())}${F('Moment publishing access',tri())}
+  <div class="sec">Courses</div>
+  ${F('Course','<select><option>Any</option><option>Grammar</option><option>Pronunciation</option></select>')}${F('Topics completed',rng())}
+  ${F('Exercises completed',rng())}${F('Videos watched',rng())}
+  <div class="sec">Version 2 — shown disabled</div>
+  ${F('Teacher comments (moments, timer, private)',rng(),'v2')}${F('Clubs: talk hours, created, video access',rng(),'v2')}
+  ${F('Lessons: audio / video',rng(),'v2')}${F('Coupons, course tests, comment format',rng(),'v2')}</div>`;
+ return `<div class="fgrid">
+  <div class="sec">Access</div>
+  <div class="f" style="grid-column:1/-1"><label class="l">Account status</label><div class="ctl">${cks(['Active','Blocked','Closed: nationality rejected'])}</div></div>
+  ${F('Block type',cks(['Temporary','Permanent']))}${F('Guest mode',tri())}
+  <div class="f" style="grid-column:1/-1"><label class="l">Active restrictions</label><div class="ctl">${cks(['Moments tab','Topic of the week tab','Clubs tab','Comments in moments','Comments in Topic of the week','Club chat','Create moments','Create clubs'])}</div></div>
+  ${F('Had sanctions before',tri())}${F('Had warnings before',tri())}
+  ${F('Sanctions in period',dr())}${F('Deleted account',tri())}
+  <div class="sec">Install &amp; activity</div>
+  ${F('Registration region (by IP)','<select style="width:100%"><option>Any country</option></select>')}${F('Platform',cks(['iOS','Android','Web']))}
+  ${F('Install source',cks(['App Store','Google Play','RuStore','Web','Other']))}${F('Registered',dr())}
+  ${F('Last active',dr())}${F('Nationality rejections, at least','<input class="n" type="number">')}
+  ${F('Has support chat',tri()+' <select><option>Any topic</option><option>Registration</option><option>Rejection</option><option>Block</option></select>')}
+  ${F('Complaints received / sent',rng(),'v2')}</div>`;
+}
+function openFilters(){
+  const d=$('#drawer');
+  d.innerHTML=`<div class="dh"><h2>Filters</h2><span class="muted" style="margin-left:10px">conditions are combined with AND; options inside one list — OR</span><button class="x" onclick="go('#s1')">×</button></div>
+  <div class="dtabs">${[['profile','1 · Profile'],['stats','2 · Statistics'],['info','3 · Info']].map(t=>`<a class="${ftab===t[0]?'on':''}" onclick="ftab='${t[0]}';openFilters()">${t[1]}</a>`).join('')}</div>
+  <div class="dbody">${filtersBody()}</div>
+  <div class="df"><button class="btn pri" onclick="go('#s1')">Apply — show 128</button><button class="btn">Reset</button><span class="sp"></span>
+   <input type="text" placeholder="Preset name" style="width:170px"><label class="ck"><input type="checkbox" disabled>Shared (superadmin)</label><button class="btn">Save preset</button></div>`;
+  d.classList.add('on');$('#ov').classList.add('on');
+}
+
+/* ---------- 3. queue ---------- */
+function queueScreen(){
+  const Q=[
+   {u:U[0],nat:'🇺🇸 American',tl:'English',test:90,v:['yellow','Yellow 82%'],gps:'🇺🇸 US',ip:'🇷🇺 RU',mm:true,mock:'No',sub:'10.10 18:42',prev:0,risk:['IP ≠ GPS','Yellow voice']},
+   {u:{nick:'jordan_b',email:'jordan.b@example.com',col:'#3f8fb5'},nat:'🇨🇦 Canadian',tl:'English',test:85,v:['green','Green 95%'],gps:'🇨🇦 CA',ip:'🇨🇦 CA',mock:'No',sub:'11.10 08:15',prev:0,risk:[]},
+   {u:{nick:'sam_r',email:'sam.r@example.com',col:'#b5793f'},nat:'🇦🇺 Australian',tl:'French',test:80,v:['green','Green 91%'],gps:'🇦🇺 AU',ip:'🇦🇺 AU',mock:'Yes',sub:'11.10 22:03',prev:1,risk:['Mock location','Previous rejection']},
+   {u:{nick:'ella_w',email:'ella.w@example.com',col:'#9a5fb5'},nat:'🇬🇧 British',tl:'English',test:95,v:['yellow','Yellow 76%'],gps:'🇬🇧 GB',ip:'🇬🇧 GB',mock:'No',sub:'12.10 10:30',prev:0,risk:['Yellow voice']}];
+  const rows=Q.map((q,i)=>`<tr class="click" onclick="${i===0?"openCard('u_8f2c1a','s5')":"openCard('u_8f2c1a','s5')"}">
+   <td><div class="uc">${ava(q.u)}<div><b>${q.u.nick}</b><span>${q.u.email}</span></div></div></td>
+   <td style="white-space:nowrap">${q.nat}<span class="en">EN</span></td><td>${q.tl}</td><td>${q.test}%</td><td><span class="b ${q.v[0]}">${q.v[1]}</span></td>
+   <td>${q.gps} <span class="muted">/</span> <span style="${q.mm?'color:var(--red);font-weight:600':''}">${q.ip}</span></td>
+   <td>${q.mock==='Yes'?'<b class="no">Yes</b>':'No'}</td><td>${q.sub}</td><td><span class="muted">no auto-confirm</span></td><td style="text-align:center">${q.prev}</td>
+   <td>${q.risk.length?q.risk.map(r=>`<span class="b red" style="margin:1px">⚠ ${r}</span>`).join(' '):'<span class="muted">—</span>'}</td></tr>`).join('');
+  return `<h1>Nationality review queue <span class="muted" style="font-size:13px;font-weight:400">— stage 2: English-language applications are confirmed by an admin, others by the server after 3 days</span></h1>
+  <div class="qtabs"><a class="on">Awaiting admin<span class="c alert">37</span></a><a>Auto-confirm<span class="c">120</span></a><a>Rejection pending<span class="c">3</span></a><a>Rejected<span class="c">4</span></a></div>
+  <div class="row" style="margin-bottom:12px">
+   <select><option>Nationality: any</option></select><select><option>Macroregion: any</option></select><select><option>Test language: any</option></select>
+   <span class="muted">Submitted</span><input type="text" class="dt" placeholder="dd.mm.yyyy"> – <input type="text" class="dt" placeholder="dd.mm.yyyy">
+   <select><option>Voice: any</option><option>Green</option><option>Yellow</option></select><select><option>Mock location: any</option><option>Yes</option><option>No</option></select>
+   <label class="ck"><input type="checkbox">Had rejections</label></div>
+  <div class="card"><table><thead><tr><th>User</th><th>Nationality</th><th>Test language</th><th>Test result</th><th>Voice level</th><th>Country: GPS / IP at registration</th><th>Mock location</th><th class="sort sorted">Submitted (oldest first)</th><th>Auto / deadline</th><th>Prev. rejections</th><th>Risk signs</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="pager"><span class="muted small" style="margin-right:auto">"EN" = test taken in English or English is among the card's languages → the server never auto-confirms these. Click a row → user card on the Nationality tab; after a decision — "Next application".</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">›</span></div></div>`;
+}
+
+/* ---------- card ---------- */
+function cardScreen(s){
+  const u=cur;
+  const tabs=[['s4','Profile'],['s5','Nationality'],['s6','Statistics'],['s7','Info & log']];
+  const pend=(u.ns==='TEST_PASSED'||u.ns==='REJECTION_PENDING');
+  const body={s4:profileTab,s5:natTab,s6:statsTab,s7:infoTab}[s](u);
+  return `<a class="back" href="#s1">← Back to list (filters are kept)</a>
+  <div class="card head">
+    <span class="ava" style="background:${u.col}">${u.nick.slice(0,2).toUpperCase()}<span class="fl">${u.fl}</span></span>
+    <div style="flex:1">
+      <div><h2>${u.nick}</h2><span class="idc">· ${u.email} · ID ${u.id} <a title="Copy ID">⧉</a></span>${u.avatar==='PENDING'?' <span class="b orange">avatar on moderation</span>':''}</div>
+      <div class="hb">${nsB(u)}<span class="b out">Confirmed language: ${u.lang}</span><span class="b ${TR[u.trust][0]}">Trust: ${TR[u.trust][1]}</span>${accB(u)}<span class="b out">Premium: ${u.prem===null?'no data':u.prem?'yes':'no'}</span></div>
+      <div class="meta">Registered ${u.reg} · last active ${u.last} · ${u.plat} · region ${u.regc} · warnings: ${u.warn} · nationality rejections: ${u.rej} · chat: ${u.chat?`<b style="color:var(--red)">${u.chat} new</b>`:'no new'}</div>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="card"><div class="ctabs">${tabs.map(t=>`<a class="${t[0]===s?'on':''}" href="#${t[0]}&user=${u.id}">${t[1]}${t[0]==='s5'&&pend?'<span class="pdot" title="Awaiting decision"></span>':''}</a>`).join('')}</div>
+      <div class="pad">${body}</div></div>
+    <div class="card actions"><h3>Actions</h3>
+      <button class="btn" onclick="openDlg('restrict')">Restrict / block…</button>
+      <button class="btn" onclick="openDlg('unblock')" ${u.acc==='ACTIVE'?'disabled title="No active sanctions"':''}>Unblock…</button>
+      <button class="btn" onclick="openDlg('warn')">Send warning…</button>
+      <button class="btn" onclick="openDlg('edit')">Edit profile data…</button>
+      <button class="btn" onclick="openDlg('pwd')">Password reset link</button>
+      <button class="btn" onclick="openDlg('avatar')">Delete avatar…</button>
+      <button class="btn" onclick="openDlg('trust')">Lock trust index… <span class="muted xs">superadmin</span></button>
+      <button class="btn" onclick="go('#s7&user=${u.id}')">Message in chat</button>
+      <div class="note">Every action: required reason → notification to the user → entry in the action log. Buttons the role has no rights for are hidden.</div>
+    </div>
+  </div>`;
+}
+const kv=(k,v)=>`<div class="kv"><div>${k}</div><div>${v}</div></div>`;
+function profileTab(u){
+  return `<div class="muted small" style="margin-bottom:8px">Read only. To change data use "Edit profile data…". Empty fields show "not specified".</div>
+  <div class="cols2"><div>
+   ${kv('Email',u.email+' <span class="b green">verified</span>')}
+   ${kv('Sign-in method','Email + password · password changed 12.05.2026 <span class="muted xs">(password is never shown)</span>')}
+   ${kv('Nickname',u.nick)}${kv('Date of birth (age)',u.dob)}
+   ${kv('Avatar',u.avatar==='NONE'?'none':u.avatar==='PENDING'?'<span class="b orange">Pending moderation</span>':'<span class="b green">Approved</span>')}
+   ${kv('Nationality',nsB(u)+` <a href="#s5&user=${u.id}">details ›</a>`)}
+   ${kv('First nationality','not specified')}${kv('Gender',u.gender)}
+   ${kv('Language / second language',u.native+' / '+u.second)}${kv('Hometown',u.town)}
+   ${kv('Learning English · experience','American accent · rarely')}
+  </div><div>
+   ${kv('Premium',u.prem===null?'no data':u.prem?'Yes':'No')}
+   ${kv('Trust level',trB(u)+` <a href="#s7&user=${u.id}">factors ›</a>`)}
+   ${kv('Geolocation','🇺🇸 United States <span class="muted xs">(country only, no point)</span>')}
+   ${kv('Voice sample','<span class="b yellow">Yellow</span> 82% <span class="muted xs">(no player here)</span>')}
+   ${kv('About me',u.about)}${kv('Personal questions','No')}${kv('No flirting','Yes')}
+   ${kv('Social links',u.social)}
+  </div></div>`;
+}
+function decisionButtons(u){
+  const B={
+   TEST_PASSED:`<button class="btn ok" onclick="openDlg('confirm')">Confirm</button><button class="btn" onclick="openDlg('assign')">Change nationality…</button><button class="btn danger" onclick="openDlg('reject')">Reject… (now / in 48 h)</button>`,
+   REJECTION_PENDING:`<button class="btn ok" onclick="openDlg('confirm')">Confirm</button><button class="btn">Cancel rejection</button><button class="btn dangerf" onclick="openDlg('reject')">Reject now</button><button class="btn" onclick="openDlg('assign')">Change nationality…</button>`,
+   REJECTED:`<button class="btn ok" onclick="openDlg('confirm')">Confirm after rejection</button><button class="btn" onclick="openDlg('assign')">Change nationality…</button><button class="btn" onclick="openDlg('retake')">Allow to retake…</button>`,
+   ADMIN_CONFIRMED:`<button class="btn" onclick="openDlg('assign')">Change nationality…</button><button class="btn danger" onclick="openDlg('reject')">Reject…</button><button class="btn" onclick="openDlg('retake')">Allow to retake…</button>`,
+   NOT_CONFIRMED:`<button class="btn" onclick="openDlg('assign')">Assign nationality (without test)…</button><button class="btn" onclick="openDlg('retake')">Allow to retake…</button>`,
+   NOT_SELECTED:`<button class="btn" onclick="openDlg('assign')">Assign nationality (without test)…</button>`};
+  return B[u.ns];
+}
+function natTab(u){
+  const hdr=u.ns==='REJECTION_PENDING'?`<span class="timer">Rejection takes effect in 31 h (15.10 09:00)</span>`:u.en&&u.ns==='TEST_PASSED'?'<b>English-language — admin decides</b> (no auto-confirm)':'auto-confirm 13.10 18:42';
+  return `<div class="row" style="margin-bottom:12px"><span>Application <b>#55</b> · initial · stage 1 passed 10.10.2026 18:42 · ${hdr} · previous rejections: ${u.rej}</span><span class="sp"></span>
+   <select title="Applications"><option>#55 — current</option><option>#41 — 02.06.2026, cancelled</option></select></div>
+  <div class="row" style="gap:6px;margin-bottom:12px"><span class="b green">1 · Stage 1: confirmed by user ✓</span><span class="muted">→</span><span class="b ${u.ns==='ADMIN_CONFIRMED'?'green':'blue'}">2 · Stage 2: confirmation by admin ${u.ns==='ADMIN_CONFIRMED'?'✓':'— waiting'}</span></div>
+  <div class="cols3">
+   <div class="box"><h4>Test</h4><p>Language: English</p><p>Result: <b>90%</b> <span class="muted">(pass mark 80%)</span></p>
+     <table class="mini" style="margin:6px 0"><tr><th>Category</th><th>Score</th></tr><tr><td>Grammar</td><td>4 / 5</td></tr><tr><td>Vocabulary</td><td>5 / 5</td></tr></table>
+     <p>Attempt 2 of 3, cycle 1</p><p><a onclick="openDlg('qa')">Questions &amp; answers ›</a></p></div>
+   <div class="box"><h4>Voice</h4>
+     <div class="player"><button class="pb" id="pb" onclick="fakePlay()">▶</button><div class="track"><i id="tr"></i></div><span class="small" id="tt">0:00 / 0:07</span></div>
+     <p>Match <b>82%</b> · <span class="b yellow">YELLOW</span> · record 2 of 5</p>
+     <p class="xs muted" style="margin-top:6px">Levels: <b class="ok">GREEN</b> ≥ 90% · <b style="color:var(--yellow)">YELLOW</b> 70–89% · <b class="no">RED</b> &lt; 70% (cannot be submitted)</p>
+     <p style="margin-top:6px">“I would like to book a <span class="miss">table</span> for two people <span class="miss">tonight</span>”</p>
+     <p class="xs muted">Red = words not matched. Audio is kept 10 days after the decision; each listen is logged.</p></div>
+   <div class="box"><h4>Geolocation</h4><div class="map"><span class="acc"></span><span class="pin"></span><span class="lbl">map: OpenStreetMap (placeholder)</span></div>
+     <p>By coordinates: 🇺🇸 United States · accuracy 20 m</p><p>By IP at registration: <b class="no">🇷🇺 Russia</b> <span class="b red xs">differs</span></p><p>Mock location: no · 10.10 18:41</p></div>
+  </div>
+  <div class="decide">${decisionButtons(u)}<span class="muted small">Buttons depend on the application status</span></div>
+  <div class="hint" style="margin-bottom:12px"><b>Buttons by status</b> (from <code>allowedActions</code>)
+   <table><tr><td>Pending review</td><td>Confirm · Change nationality · Reject (now / in 48 h)</td></tr>
+   <tr><td>Rejection pending</td><td>Confirm · Cancel rejection · Reject now · Change nationality</td></tr>
+   <tr><td>Rejected</td><td>Confirm after rejection · Change nationality · Allow to retake</td></tr>
+   <tr><td>Confirmed</td><td>Change nationality · Reject · Allow to retake</td></tr>
+   <tr><td>No application / in progress / cooldown</td><td>Assign nationality (without test) · Allow to retake</td></tr></table></div>
+  <h4 style="margin:6px 0">History</h4>
+  <table class="mini"><thead><tr><th>When</th><th>Event</th><th>By</th></tr></thead><tbody>
+   <tr><td>10.10 18:42</td><td>Stage 1: confirmed by user (application submitted)</td><td>user</td></tr>
+   <tr><td>10.10 18:39</td><td>Voice record 2 — 82%, yellow</td><td>user</td></tr>
+   <tr><td>10.10 18:31</td><td>Test passed — 90% (attempt 2)</td><td>user</td></tr>
+   <tr><td>09.10 20:05</td><td>Test failed — 70% (attempt 1)</td><td>user</td></tr>
+   <tr><td>02.06 11:20</td><td>Application #41 cancelled by user</td><td>user</td></tr></tbody></table>`;
+}
+let playT=null;
+function fakePlay(){const tr=$('#tr'),tt=$('#tt'),pb=$('#pb');if(playT){clearInterval(playT);playT=null;pb.textContent='▶';return}let t=0;pb.textContent='❚❚';
+ playT=setInterval(()=>{t++;tr.style.width=(t/7*100)+'%';tt.textContent='0:0'+t+' / 0:07';if(t>=7){clearInterval(playT);playT=null;pb.textContent='▶'}},500)}
+function statsTab(u){
+  return `<div class="row" style="margin-bottom:12px"><div class="seg"><button class="on">All time</button><button>30 days</button></div><span class="muted small">Only data the backend already stores (v1)</span></div>
+  <div class="cols3">
+   <div class="box"><h4>Moments</h4>${kv('Created','50')}${kv('In "Topic of the week"','6')}${kv('Reviewed by teacher','31')}${kv('Corrected by teacher','12')}${kv('Blocked by moderator','1')}${kv('Deleted by moderator','0')}${kv('Last moment','12.10.2026 19:00')}</div>
+   <div class="box"><h4>Comments</h4>${kv('In moments','10')}${kv('In "Topic of the week"','10')}${kv('Deleted by moderator','0')}${kv('Last comment','11.10.2026 07:10')}
+     <h4 style="margin-top:14px">Publishing access</h4>
+     <p class="ok">✓ Publish moments</p><p class="no">✗ Comment in moments <span class="muted xs">— restricted until 20.10</span></p><p class="ok">✓ Comment in "Topic of the week"</p><p class="ok">✓ Clubs</p></div>
+   <div class="box"><h4>Courses</h4>${kv('Topics started / completed','14 / 9')}${kv('Exercises completed','182')}${kv('Videos watched','20')}${kv('Last activity','09.10.2026 15:00')}</div>
+  </div>
+  <h4 style="margin:16px 0 6px">Courses by topic</h4>
+  <table class="mini"><thead><tr><th>Course</th><th>Level</th><th>Topics (total / started / completed)</th><th>Topic</th><th>Exercises</th><th>Videos</th><th>Progress</th></tr></thead><tbody>
+   <tr><td>▾ Grammar</td><td>A2</td><td>24 / 10 / 7</td><td>Present Simple</td><td>12 / 12</td><td>2 / 2</td><td><span class="b green">100% completed</span></td></tr>
+   <tr><td></td><td></td><td></td><td>Past Simple</td><td>8 / 12</td><td>1 / 2</td><td>64%</td></tr>
+   <tr><td></td><td>B1</td><td>20 / 2 / 1</td><td colspan="4" class="muted">▸ expand topics</td></tr>
+   <tr><td>▸ Pronunciation</td><td>A2</td><td>15 / 2 / 1</td><td colspan="4" class="muted">▸ expand topics</td></tr></tbody></table>
+  <p class="muted small" style="margin-top:12px">Clubs, lessons, teacher comments, coupons, course tests — will appear in version 2 (no data yet; blocks are hidden, not shown as “0”).</p>`;
+}
+function infoTab(u){
+  return `<div class="cols2"><div>
+   <h4 style="margin:0 0 6px">Account</h4>
+   ${kv('Account status',accB(u))}${kv('Download region (IP)',u.regc)}${kv('Source (platform / store)',u.plat)}${kv('App version',u.ver)}${kv('Registered',u.reg)}${kv('Last active',u.last)}
+  </div><div>
+   <h4 style="margin:0 0 6px">Trust index — ${u.score} / 100 · ${trB(u)} <span class="muted xs">not locked</span></h4>
+   <table class="mini"><tbody><tr><td>Base</td><td>+20</td></tr><tr><td>Nationality confirmed by user (stage 1)</td><td>+15</td></tr><tr><td>Voice yellow</td><td>+5</td></tr><tr><td>Account age (5 months)</td><td>+5</td></tr><tr><td>Activity, 30 days</td><td>+15</td></tr><tr><td>Communication (10+ comments)</td><td>+5</td></tr><tr><td>Warnings, 90 days (1)</td><td class="no">−5</td></tr><tr><td>Sanctions, 180 days (restriction)</td><td class="no">−8</td></tr></tbody></table>
+  </div></div>
+  <h4 style="margin:16px 0 6px">Sanctions</h4>
+  <table class="mini"><thead><tr><th>Type</th><th>Features</th><th>Term</th><th>Reason</th><th>Set by</th><th>Status</th><th></th></tr></thead><tbody>
+   <tr><td>Restriction</td><td>Comments in moments</td><td>13.10 – 20.10.2026 (7 days)</td><td>Insult</td><td>anna.admin</td><td><span class="b yellow">Active</span></td><td><button class="btn sm" onclick="openDlg('unblock')">Revoke</button></td></tr>
+   <tr><td>Block</td><td>—</td><td>01.07 – 04.07.2026 (3 days)</td><td>Spam</td><td>max.admin</td><td><span class="b gray">Expired</span></td><td></td></tr></tbody></table>
+  <div class="cols2" style="margin-top:16px"><div>
+   <h4 style="margin:0 0 6px">Warnings</h4>
+   <div class="box"><p><b>12.10.2026 · anna.admin</b> · Rules violation</p><p>Please follow the communication rules in comments. If repeated, access will be restricted.</p></div>
+  </div><div>
+   <h4 style="margin:0 0 6px">Chat with admin <span class="muted xs">topic: block</span></h4>
+   <div class="box small"><p><b>user · 12.10 20:14</b> Why can't I comment?</p><p><b>anna.admin · 12.10 20:30</b> Your comments were reported as insulting…</p><p><b>user · 13.10 08:02</b> Ok, sorry. <span class="b red xs">new</span></p><p style="margin-top:6px"><a>Open chat ›</a></p></div>
+  </div></div>
+  <div class="row" style="margin:16px 0 6px"><h4 style="margin:0">Admin action log</h4><span class="sp"></span><select><option>All actions</option><option>Sanctions</option><option>Warnings</option><option>Nationality</option><option>Profile changes</option><option>Views</option></select></div>
+  <table class="mini"><thead><tr><th>When</th><th>Admin</th><th>Action</th><th>Details / comment</th></tr></thead><tbody>
+   <tr><td>13.10 09:02</td><td>anna.admin</td><td>SANCTION_CREATE</td><td>Restriction: comments in moments, 7 days — “Complaint in chat 12.10”</td></tr>
+   <tr><td>12.10 20:31</td><td>anna.admin</td><td>WARNING_CREATE</td><td>Rules violation</td></tr>
+   <tr><td>12.10 20:10</td><td>anna.admin</td><td>MEDIA_VIEW</td><td>Voice record 2, application #55</td></tr>
+   <tr><td>12.10 20:09</td><td>anna.admin</td><td>USER_VIEW</td><td>—</td></tr></tbody></table>
+  <p class="muted small" style="margin-top:10px">Complaints — version 2.</p>`;
+}
+
+/* ---------- dialogs ---------- */
+const reasons=['Spam','Insult','Inappropriate content','Fraud','Fake profile','Flirting','Rules violation','Other'];
+const rsel=(v)=>`<select>${reasons.map(r=>`<option ${r===v?'selected':''}>${r}</option>`).join('')}</select>`;
+function shell(t,what,body,foot){return `<div class="dlg"><div class="dh"><h2>${t}</h2><button class="x" onclick="closeDlg()">×</button></div><div class="what">${what}</div><div class="db">${body}</div><div class="dfoot"><button class="btn" onclick="closeDlg()">Cancel</button>${foot}</div></div>`}
+const D={
+ restrict:()=>shell(`Restrict / block — ${cur.nick}`,'Closes the whole app or selected tabs / features for the user. The server enforces it (403 + code).',`
+  <div class="fld"><div class="radio" onclick="selR(this)"><input type="radio" name="k"><div><b>Block the account completely</b><div class="muted xs">Login screen with reason and term; only the chat with admin is available</div></div></div>
+   <div class="radio on" onclick="selR(this)"><input type="radio" name="k" checked><div><b>Restrict sections</b>
+    <div class="muted xs" style="margin-top:4px">Tabs</div><div class="grp">
+     <label class="ck"><input type="checkbox" data-tab="m" onchange="nest(this)">Moments</label><label class="ck"><input type="checkbox" data-tab="t" onchange="nest(this)">Topic of the week</label><label class="ck"><input type="checkbox" data-tab="c" onchange="nest(this)">Clubs</label></div>
+    <div class="muted xs">Features (auto-checked if the tab is checked)</div><div class="grp">
+     <label class="ck"><input type="checkbox" data-f="m" checked onchange="sumR()">Comments in moments</label><label class="ck"><input type="checkbox" data-f="t" onchange="sumR()">Comments in Topic of the week</label>
+     <label class="ck"><input type="checkbox" data-f="c" onchange="sumR()">Club chat</label><label class="ck"><input type="checkbox" data-f="m" onchange="sumR()">Create moments</label><span></span><label class="ck"><input type="checkbox" data-f="c" onchange="sumR()">Create clubs</label></div></div></div></div>
+  <div class="fld"><label>Term</label><div class="row"><label class="ck"><input type="radio" name="term">Forever</label><label class="ck"><input type="radio" name="term" checked>Days</label><input type="number" class="n" value="7" style="width:64px">
+   <button class="btn sm">1</button><button class="btn sm">3</button><button class="btn sm on">7</button><button class="btn sm">30</button><span class="muted small">until 20.10.2026 12:00</span></div></div>
+  <div class="fld"><label>Reason</label>${rsel('Insult')}
+   <textarea rows="2" style="margin-top:6px">Insulting comments. You cannot write comments for 7 days.</textarea><div class="seen">👁 The user will see this text (from template, editable)</div></div>
+  <div class="fld"><label>Internal note <span class="muted">(admins only)</span></label><input type="text" style="width:100%" value="Complaint in chat 12.10"></div>
+  <div class="sum" id="sumR">User will not be able to: comment in moments — until 20.10.2026 12:00</div>`,`<button class="btn dangerf">Apply</button>`),
+ warn:()=>shell(`Send warning — ${cur.nick}`,'The user receives a notification; the warning stays in the card history. No automatic block.',`
+  <div class="fld"><label>Template <span class="muted">(optional)</span></label><select><option>Rules of communication</option><option>Spam</option><option>— none —</option></select></div>
+  <div class="fld"><label>Text</label><textarea rows="4" oninput="this.nextElementSibling.textContent=this.value.length+' / 2000 (min 5)'">Please follow the communication rules in comments. If repeated, access will be restricted.</textarea><div class="help">88 / 2000 (min 5)</div><div class="seen">👁 The user will see this text</div></div>
+  <div class="fld"><label>Reason</label>${rsel('Rules violation')}</div>
+  <div class="fld"><label>Notification preview</label><div class="preview"><b>⚠ Warning from administrator</b>Please follow the communication rules in comments. If repeated, access will be restricted.</div></div>`,`<button class="btn pri">Send warning</button>`),
+ edit:()=>shell(`Edit profile data — ${cur.nick}`,'Only allowed fields. Email and password cannot be changed here — use “Password reset link”.',`
+  <div class="fgrid">
+   <div class="fld"><label>Nickname</label><input type="text" style="width:100%" value="Qwerty"></div>
+   <div class="fld"><label>Date of birth</label><input type="text" style="width:100%" value="05.11.1995"></div>
+   <div class="fld"><label>Gender</label><select><option>Male</option><option>Female</option></select></div>
+   <div class="fld"><label>About me</label><input type="text" style="width:100%" value="Learning English for travel and work."></div>
+   <div class="fld"><label>Facebook / X (Twitter)</label><div class="row"><input type="text" style="width:47%" placeholder="—"><input type="text" style="width:47%" placeholder="—"></div></div>
+   <div class="fld"><label>Instagram / LinkedIn</label><div class="row"><input type="text" style="width:47%" value="qwe"><input type="text" style="width:47%" placeholder="—"></div></div></div>
+  <div class="warnbox">⚠ Changing date of birth or gender also changes: age group, female-profile options, trust index.</div>
+  <div class="fgrid"><div class="fld"><label>Reason</label>${rsel('Inappropriate content')}</div>
+   <div class="fld"><label>Comment <span class="no">*</span></label><input type="text" style="width:100%" value="Offensive nickname; DOB fixed at user's request in chat"></div></div>
+  <label class="ck"><input type="checkbox" checked>Notify the user</label>
+  <div class="fld" style="margin-top:10px"><label>Step 2 — review: before → after</label><table class="mini"><thead><tr><th>Field</th><th>Before</th><th>After</th></tr></thead><tbody><tr><td>Nickname</td><td>QWE</td><td><b>Qwerty</b></td></tr><tr><td>Date of birth</td><td>11.05.1995</td><td><b>05.11.1995</b></td></tr></tbody></table></div>`,`<button class="btn">Next: review changes</button><button class="btn pri">Save</button>`),
+ reject:()=>shell(`Reject nationality — ${cur.nick} · ${cur.fl} ${cur.nat}`,'Choose when the rejection takes effect. Text comes from a template and can be edited.',`
+  <div class="fld"><label>Mode</label>
+   <div class="radio" onclick="selR(this)"><input type="radio" name="rm"><div><b>Reject now</b><div class="muted xs">Access closes immediately — only the chat with admin remains; the reason becomes the first chat message</div></div></div>
+   <div class="radio on" onclick="selR(this)"><input type="radio" name="rm" checked><div><b>Reject in 48 h</b><div class="muted xs">User keeps using the app and gets a notification; if not resolved by 15.10.2026 09:00 — access closes as “now”</div></div></div></div>
+  <div class="fld"><label>Reason template</label><select style="width:100%"><option>Voice record does not match the nationality</option><option>Geolocation does not match</option><option>Suspected mock location</option><option>Other</option></select></div>
+  <div class="fld"><label>Text for the user</label><textarea rows="4">We could not confirm your nationality ${cur.nat}: the voice record does not match. If the issue is not resolved by 15.10.2026 09:00, access to the app will be closed. Please write to the administrator in the chat.</textarea><div class="seen">👁 The user will see this text (10–1000 characters)</div></div>
+  <div class="fld"><label>Preview</label><div class="preview"><b>Notification</b>Nationality ${cur.nat} not confirmed: the voice record does not match… Write to the administrator in the chat.</div>
+   <div class="preview" style="margin-top:6px"><b>First message in chat (for “Reject now”)</b>Access to the app is denied because your nationality was not confirmed. Reason: …</div></div>`,`<button class="btn dangerf">Reject in 48 h</button>`),
+ unblock:()=>shell(`Unblock — ${cur.nick}`,'Revokes the selected active sanctions. The user gets “Access restored”.',`
+  <div class="fld"><label>Active sanctions</label><label class="ck"><input type="checkbox" checked>Restriction: comments in moments — until 20.10.2026</label></div>
+  <div class="fld"><label>Reason <span class="no">*</span></label><input type="text" style="width:100%" placeholder="e.g. Blocked by mistake"></div>`,`<button class="btn pri" disabled>Unblock</button>`),
+ avatar:()=>shell(`Delete avatar — ${cur.nick}`,'Avatar is removed; the user is notified and can upload a new one.',`
+  <div class="row" style="margin-bottom:10px">${ava(cur)}<span class="muted small">current avatar</span></div>
+  <div class="fld"><label>Reason</label><select><option>Not a person</option><option>Nudity</option><option>Offensive</option><option>Other</option></select><input type="text" style="width:100%;margin-top:6px" placeholder="Text for the user"><div class="seen">👁 The user will see this text</div></div>`,`<button class="btn dangerf">Delete avatar</button>`),
+ trust:()=>shell(`Lock trust index — ${cur.nick}`,'superadmin only. The locked level is shown to others; calculation continues.',`
+  <div class="fld"><label>Level</label><select><option>High</option><option>Medium</option><option>Low</option></select> <span class="muted small">current calculated: ${TR[cur.trust][1]} (${cur.score})</span></div>
+  <div class="fld"><label>Term</label><label class="ck"><input type="radio" name="tt" checked>Indefinitely</label><label class="ck"><input type="radio" name="tt">Until <input type="text" class="dt" placeholder="dd.mm.yyyy"></label></div>
+  <div class="fld"><label>Reason <span class="no">*</span></label><input type="text" style="width:100%" placeholder="e.g. Verified teacher"></div>`,`<button class="btn pri" disabled>Lock</button>`),
+ pwd:()=>shell('Password reset link','Firebase sends a standard email; the link is not shown to the admin. Max once per 10 minutes.',`<p>Send a password reset email to <b>${cur.email}</b>?</p><p class="muted small">Hidden if the user signs in with Google / Apple.</p>`,`<button class="btn pri">Send</button>`),
+ confirm:()=>shell(`Confirm nationality — ${cur.nick} · ${cur.fl} ${cur.nat}`,'Status becomes “Confirmed by admin” (green). The user can no longer change nationality by themselves.',`<div class="fld"><label>Comment <span class="muted">(optional)</span></label><textarea rows="2"></textarea></div>`,`<button class="btn ok">Confirm</button>`),
+ assign:()=>shell(`Change / assign nationality — ${cur.nick}`,'Nationality will be confirmed without a test.',`
+  <div class="fld"><label>Nationality</label><input type="text" style="width:100%" value="🇨🇦 Canadian" placeholder="Search nationality…"></div>
+  <div class="fld"><label>Language <span class="muted">(optional, from the nationality's languages)</span></label><select><option>English</option><option>French</option></select></div>
+  <div class="fld"><label>Comment <span class="no">*</span></label><input type="text" style="width:100%" value="Confirmed after conversation in chat"></div>`,`<button class="btn pri">Assign</button>`),
+ retake:()=>shell(`Allow to retake — ${cur.nick}`,'Nationality is reset; the user chooses it again and is a guest until the check is passed.',`<div class="fld"><label>Reason <span class="no">*</span></label><input type="text" style="width:100%"></div>`,`<button class="btn pri" disabled>Allow</button>`),
+ qa:()=>shell('Test questions & answers — attempt 2','Snapshot of the questions with correct answers and the user\'s answers.',`<table class="mini"><thead><tr><th>#</th><th>Category</th><th>Question</th><th>User</th><th>Correct</th></tr></thead><tbody>
+   <tr><td>1</td><td>Grammar</td><td>She ___ to work every day.</td><td>goes</td><td class="ok">✓</td></tr><tr><td>2</td><td>Grammar</td><td>I ___ him yesterday.</td><td>have seen</td><td class="no">✗ saw</td></tr><tr><td>3</td><td>Vocabulary</td><td>Synonym of “huge”</td><td>enormous</td><td class="ok">✓</td></tr></tbody></table>`,'')
+};
+function openDlg(k){const m=$('#modal');m.innerHTML=D[k]();m.classList.add('on')}
+function closeDlg(silent){$('#modal').classList.remove('on');$('#modal').innerHTML=''}
+function selR(el){el.parentNode.querySelectorAll('.radio').forEach(r=>{r.classList.remove('on');r.querySelector('input').checked=false});el.classList.add('on');el.querySelector('input').checked=true}
+function nest(cb){const d=cb.closest('.radio');d.querySelectorAll(`[data-f="${cb.dataset.tab}"]`).forEach(f=>{f.checked=cb.checked||f.checked;f.disabled=cb.checked});sumR()}
+function sumR(){const s=$('#sumR');if(!s)return;const d=s.closest('.db');const on=[...d.querySelectorAll('.grp input:checked')].map(i=>i.parentNode.textContent.trim().toLowerCase());s.textContent='User will not be able to: '+(on.join(', ')||'—')+' — until 20.10.2026 12:00'}
+function galleryScreen(){
+  const items=[['D1','restrict'],['D8','reject'],['D3','warn'],['D4','edit']];
+  return `<h1>Action dialogs <span class="muted" style="font-size:13px;font-weight:400">— common rules: title with nickname · one-line “what will happen” · required reason · 👁 marks text the user will see · confirm button disabled until the form is valid</span></h1>
+  <div class="gallery">${items.map(i=>`<div><div style="margin-bottom:6px"><span class="gtag">${i[0]}</span></div>${D[i[1]]()}</div>`).join('')}</div>
+  <p class="muted small" style="margin-top:14px">Also in the prototype (open from the card): D2 Unblock · D5 Delete avatar · D6 Lock trust index · D7 Confirm nationality · D9 Change / assign nationality · D10 Allow to retake · Password reset link.</p>`;
+}
+render();
+</script>
+</body>
+</html>
